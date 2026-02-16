@@ -13,8 +13,9 @@ namespace sceneIO::parser {
 class SubMesh {
 
 private:
-	std::vector<Vertex> vertices_;
 	std::vector<uint32_t> indices_;
+
+	std::string parsed_mat_name_;
 	uint32_t materialId_ = 0;
 	
 	// si on veut settup du culling coté rasterisation
@@ -33,7 +34,7 @@ private:
 	friend void sceneIO::parser::parseObj(Asset& asset, const std::string& path);
 
 public:
-	SubMesh() {}
+	SubMesh(const std::string& mat = "default") : parsed_mat_name_(mat) {}
 	~SubMesh() {}
 
 };
