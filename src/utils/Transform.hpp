@@ -30,7 +30,7 @@ public:
 	void setScale(const vec4& scale);
 	void setScale(const vec3& scale);
 	const vec4& getScale() const { return scale_; }
-	const vec3& getScaleVec3() const { return {scale_.x, scale_.y, scale_.z}; }
+	const vec3 getScaleVec3() const { return {scale_.x, scale_.y, scale_.z}; }
 	
 	const mat4& getMatrix() const;
 	

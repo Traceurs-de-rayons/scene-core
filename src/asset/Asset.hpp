@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Mesh.hpp"
-#include "Transform.hpp"
+#include "utils/Transform.hpp"
 #include "BVH.hpp"
 #include "Primitive.hpp"
 
@@ -31,5 +31,8 @@ private:
 
 public:
 	std::string name;
+
+	Asset() {}
+	~Asset() {}
 	
 };

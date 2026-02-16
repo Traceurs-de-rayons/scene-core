@@ -4,7 +4,7 @@
 #include "BVH.hpp"
 #include "Vertex.hpp"
 #include "Texture.hpp"
-#include "Asset.hpp"
+#include "asset/Asset.hpp"
 
 #include <vector>
 #include <filesystem>

@@ -1,5 +1,3 @@
-#pragma once
-
 #include "Transform.hpp"
 
 using namespace cu::math;
