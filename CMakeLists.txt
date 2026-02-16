@@ -33,9 +33,8 @@ endif()
 target_include_directories(scene-core
 	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-		$<INSTALL_INTERFACE:include>
-	PRIVATE
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+		$<INSTALL_INTERFACE:include>
 )
 
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../core-utils core-utils-build)

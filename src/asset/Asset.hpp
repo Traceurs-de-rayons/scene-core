@@ -29,10 +29,16 @@ private:
 	BVH blas_;
 	uint32_t blasIndex_; // index du blas sur le buffer gpu, uniquement si tous les submesh sont bien envoye
 
+	friend void sceneIO::parser::parseObj(Asset& asset, const std::string& path);
+
 public:
 	std::string name;
 
 	Asset() {}
+	Asset(Asset& other) = delete;
+	Asset(Asset&& other) = default;
+	Asset& operator=(Asset& other) = delete;
+	Asset& operator=(Asset&& other) = default;
 	~Asset() {}
 	
 };

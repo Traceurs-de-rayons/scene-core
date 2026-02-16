@@ -5,6 +5,11 @@
 #include <stdint.h>
 #include <vector>
 
+class Asset;
+namespace sceneIO::parser {
+	void parseObj(Asset& asset, const std::string& path);
+}
+
 class SubMesh {
 
 private:
@@ -24,6 +29,8 @@ private:
 	uint32_t indexCount_ = 0;
 
 	bool isGPUResident_ = false;
+
+	friend void sceneIO::parser::parseObj(Asset& asset, const std::string& path);
 
 public:
 	SubMesh() {}

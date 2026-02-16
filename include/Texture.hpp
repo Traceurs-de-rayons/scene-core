@@ -8,14 +8,14 @@ enum TextureType {
 	RGBE
 };
 
-struct rgba {
+struct rgba_t {
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
 	uint8_t a;
 };
 
-struct rgbe {
+struct rgbe_t {
 	uint8_t r;
 	uint8_t g;
 	uint8_t b;
@@ -29,7 +29,7 @@ struct Texture {
 	uint32_t height;
 	union
 	{
-		rgba *rgba;
-		rgbe *rgbe;
+		rgba_t *rgba;
+		rgbe_t *rgbe;
 	};
 };
