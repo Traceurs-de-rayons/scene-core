@@ -15,10 +15,10 @@ private:
 	mutable bool matrixDirty_ = true;
 
 public:
-	void setPosition(const vec4& pos);
-	void setPosition(const vec3& pos);
-	const vec4& getPosition() const { return position_; }
-	const vec3 getPositionVec3() const { return vec3(position_.x, position_.y, position_.z); }
+	void setTranslation(const vec4& pos);
+	void setTranslation(const vec3& pos);
+	const vec4& getTranslation() const { return position_; }
+	const vec3 getTranslationVec3() const { return vec3(position_.x, position_.y, position_.z); }
 	
 	void setRotation(const quat& rot);
 	const quat& getRotation() const { return rotation_; }

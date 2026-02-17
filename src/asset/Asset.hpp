@@ -40,5 +40,8 @@ public:
 	Asset& operator=(Asset& other) = delete;
 	Asset& operator=(Asset&& other) = default;
 	~Asset() {}
+
+	void print() const;
+	void printVerbose() const;
 	
 };

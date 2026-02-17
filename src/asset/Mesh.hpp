@@ -26,4 +26,7 @@ public:
 
 	~Mesh() {}
 
+	void print() const;
+	void printVerbose() const;
+
 };

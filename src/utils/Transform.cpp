@@ -2,11 +2,11 @@
 
 using namespace cu::math;
 
-void Transform::setPosition(const vec4& pos) {
+void Transform::setTranslation(const vec4& pos) {
 	position_ = pos;
 	matrixDirty_ = true;
 }
-void Transform::setPosition(const vec3& pos) {
+void Transform::setTranslation(const vec3& pos) {
 	position_ = {pos.x, pos.y, pos.z, 1};
 	matrixDirty_ = true;
 }

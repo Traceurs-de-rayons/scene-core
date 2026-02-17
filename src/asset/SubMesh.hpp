@@ -37,4 +37,7 @@ public:
 	SubMesh(const std::string& mat = "default") : parsed_mat_name_(mat) {}
 	~SubMesh() {}
 
+	void print() const;
+	void printVerbose() const;
+
 };
