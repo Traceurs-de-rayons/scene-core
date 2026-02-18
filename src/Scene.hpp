@@ -36,8 +36,10 @@ private:
 	
 
 public:
-	Scene() {}
-	~Scene() {}
+	Scene() = default;
+	Scene(Scene&&) = default;
+	Scene& operator=(Scene&&) = default;
+	~Scene() = default;
 
 	void loadAsset(Asset &obj);
 
