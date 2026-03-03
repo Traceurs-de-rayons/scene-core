@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <vector>
 #include <memory>
+#include <optional>
 
 enum AssetType {
 	AssetObject,
@@ -20,9 +21,9 @@ class Asset {
 
 private:
 	AssetType type_;
-	std::vector<std::unique_ptr<Mesh>> meshes_; // Si AssetObject
-	std::unique_ptr<Primitive> primitive_; // Si AssetPrimitive
-	uint32_t parent_asset_id_;  // Si AssetInstance
+	std::optional<std::vector<std::unique_ptr<Mesh>>> meshes_; // Si AssetObject
+	std::optional<Primitive> primitive_; // Si AssetPrimitive
+	std::optional<uint32_t> parent_asset_id_;  // Si AssetInstance
 
 	Transform transform_;
 

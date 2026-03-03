@@ -8,16 +8,16 @@ void Asset::print() const
 	switch (type_) {
 		case AssetObject:
 			std::cout << "Object" << std::endl;
-			std::cout << "  Mesh Count: " << meshes_.size() << std::endl;
-			for (size_t i = 0; i < meshes_.size(); ++i) {
-				meshes_[i]->print();
+			std::cout << "  Mesh Count: " << meshes_.value().size() << std::endl;
+			for (size_t i = 0; i < meshes_.value().size(); ++i) {
+				meshes_.value()[i]->print();
 			}
 			break;
 		case AssetPrimitive:
 			std::cout << "Primitive" << std::endl;
 			break;
 		case AssetInstance:
-			std::cout << "Instance (Parent ID: " << parent_asset_id_ << ")" << std::endl;
+			std::cout << "Instance (Parent ID: " << parent_asset_id_.value() << ")" << std::endl;
 			break;
 	}
 	std::cout << "  Transform:" << std::endl;
@@ -33,16 +33,16 @@ void Asset::printVerbose() const
 	switch (type_) {
 		case AssetObject:
 			std::cout << "Object" << std::endl;
-			std::cout << "  Mesh Count: " << meshes_.size() << std::endl;
-			for (size_t i = 0; i < meshes_.size(); ++i) {
-				meshes_[i]->printVerbose();
+			std::cout << "  Mesh Count: " << meshes_.value().size() << std::endl;
+			for (size_t i = 0; i < meshes_.value().size(); ++i) {
+				meshes_.value()[i]->printVerbose();
 			}
 			break;
 		case AssetPrimitive:
 			std::cout << "Primitive" << std::endl;
 			break;
 		case AssetInstance:
-			std::cout << "Instance (Parent ID: " << parent_asset_id_ << ")" << std::endl;
+			std::cout << "Instance (Parent ID: " << parent_asset_id_.value() << ")" << std::endl;
 			break;
 	}
 	std::cout << "  Transform:" << std::endl;
