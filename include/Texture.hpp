@@ -2,34 +2,47 @@
 
 #include <stdint.h>
 #include <string>
+#include <variant>
+#include <memory>
 
-enum TextureType {
-	RGBA,
-	RGBE
+enum class TextureState
+{
+	Declared,
+	Loaded,
+	Uploaded,
 };
 
-struct rgba_t {
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-	uint8_t a;
-};
+struct Texture
+{
+	std::string name = "";
+	std::string label = "";
 
-struct rgbe_t {
-	uint8_t r;
-	uint8_t g;
-	uint8_t b;
-	uint8_t e;
-};
-
-struct Texture {
-	std::string name;
-	TextureType type;
-	uint32_t width;
-	uint32_t height;
-	union
+	struct FromFile
 	{
-		rgba_t *rgba;
-		rgbe_t *rgbe;
+		std::string path = "";
+		TextureState state = TextureState::Declared;
+		std::unique_ptr<uint8_t[]> data = nullptr;
+		int width = 0;
+		int height = 0;
+		int channels = 0;
 	};
+
+	struct CheckerLocal
+	{
+		cu::math::vec3 even = cu::math::vec3();
+		cu::math::vec3 odd = cu::math::vec3();
+		float scale = 1.0f;
+	};
+
+	struct CheckerGlobal
+	{
+		cu::math::vec3 even = cu::math::vec3();
+		cu::math::vec3 odd = cu::math::vec3();
+		float scale = 1.0f;
+	};
+
+	std::variant<FromFile, CheckerLocal, CheckerGlobal> data;
+
+	Texture() : data(FromFile{}) {}
+	~Texture() = default;
 };

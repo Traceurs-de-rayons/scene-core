@@ -7,16 +7,19 @@
 #include "asset/Asset.hpp"
 
 #include <vector>
+#include <unordered_map>
 #include <filesystem>
 
 using namespace cu::math;
 
+namespace sceneIO::tdr { class SceneLoader; }
 
 struct Material {
 	
 };
 
-class Scene {
+class Scene
+{
 
 private:
 	// GPU buffers :
@@ -27,13 +30,14 @@ private:
 	// tlas
 	// blas (selon la structure blas et tlas peuvent etre dans le meme buffer)
 	
-	std::vector<Material> materials_;
+	std::unordered_map<std::string, Texture>  textures_;
+	std::unordered_map<std::string, Material>  materials_;
 
 	BVH tlas_;
 
 	std::vector<Asset> assets_;
-	std::vector<Texture> textures_;
 	
+	friend class sceneIO::tdr::SceneLoader;
 
 public:
 	Scene() = default;
