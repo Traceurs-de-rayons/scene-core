@@ -9,6 +9,7 @@
 #include <vector>
 #include <memory>
 #include <optional>
+#include <variant>
 
 enum AssetType {
 	AssetObject,
@@ -17,13 +18,25 @@ enum AssetType {
 	// AssetVolume
 };
 
-class Asset {
+class Asset 
+{
 
 private:
-	AssetType type_;
-	std::optional<std::vector<std::unique_ptr<Mesh>>> meshes_; // Si AssetObject
-	std::optional<Primitive> primitive_; // Si AssetPrimitive
-	std::optional<uint32_t> parent_asset_id_;  // Si AssetInstance
+	struct ObjectData {
+		std::vector<std::unique_ptr<Mesh>> meshes;
+	};
+
+	struct PrimitiveData {
+		Primitive primitive;
+	};
+
+	struct InstanceData {
+		std::string parent_name;
+	};
+
+	std::string name_;
+
+	std::variant<ObjectData, PrimitiveData, InstanceData> content_;
 
 	Transform transform_;
 
@@ -33,8 +46,6 @@ private:
 	friend void sceneIO::parser::parseObj(Asset& asset, const std::string& path);
 
 public:
-	std::string name;
-
 	Asset() {}
 	Asset(Asset& other) = delete;
 	Asset(Asset&& other) = default;

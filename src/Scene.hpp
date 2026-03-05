@@ -4,6 +4,7 @@
 #include "BVH.hpp"
 #include "Vertex.hpp"
 #include "Texture.hpp"
+#include "Material.hpp"
 #include "asset/Asset.hpp"
 
 #include <vector>
@@ -13,10 +14,6 @@
 using namespace cu::math;
 
 namespace sceneIO::tdr { class SceneLoader; }
-
-struct Material {
-	
-};
 
 class Scene
 {
@@ -35,7 +32,7 @@ private:
 
 	BVH tlas_;
 
-	std::vector<Asset> assets_;
+	std::unordered_map<std::string, Asset>  assets_;
 	
 	friend class sceneIO::tdr::SceneLoader;
 
