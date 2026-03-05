@@ -37,7 +37,9 @@ target_include_directories(scene-core
 		$<INSTALL_INTERFACE:include>
 )
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../core-utils core-utils-build)
+if(NOT TARGET core-utils)
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../core-utils core-utils-build)
+endif()
 
 target_link_libraries(scene-core
 	PUBLIC core-utils
