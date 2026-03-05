@@ -13,8 +13,6 @@
 
 using namespace cu::math;
 
-namespace sceneIO::tdr { class SceneLoader; }
-
 class Scene
 {
 

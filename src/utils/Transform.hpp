@@ -4,7 +4,8 @@
 
 using namespace cu::math;
 
-class Transform {
+class Transform
+{
 
 private:
 	vec4 position_ = vec4(0.0f);

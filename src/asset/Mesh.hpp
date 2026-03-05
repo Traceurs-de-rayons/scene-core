@@ -14,7 +14,9 @@ private:
 	std::vector<Vertex> vertices_;
 	std::vector<std::unique_ptr<SubMesh>> subMeshes_;
 
-	friend void sceneIO::parser::parseObj(Asset& asset, const std::string& path);
+	friend void sceneIO::parser::parseObj(Asset& asset, std::istream& in,
+	                                      sceneIO::parser::ObjErrorCollector& errors,
+	                                      uint64_t startLine, uint64_t startColumn);
 
 public:
 	std::string name;

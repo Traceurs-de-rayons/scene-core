@@ -4,10 +4,14 @@
 
 #include <stdint.h>
 #include <vector>
+#include <istream>
+#include <string>
 
 class Asset;
 namespace sceneIO::parser {
-	void parseObj(Asset& asset, const std::string& path);
+	class ObjErrorCollector;
+	void parseObj(Asset& asset, std::istream& in, ObjErrorCollector& errors,
+	              uint64_t startLine, uint64_t startColumn);
 }
 
 class SubMesh {
@@ -31,7 +35,9 @@ private:
 
 	bool isGPUResident_ = false;
 
-	friend void sceneIO::parser::parseObj(Asset& asset, const std::string& path);
+	friend void sceneIO::parser::parseObj(Asset& asset, std::istream& in,
+	                                      sceneIO::parser::ObjErrorCollector& errors,
+	                                      uint64_t startLine, uint64_t startColumn);
 
 public:
 	SubMesh(const std::string& mat = "default") : parsed_mat_name_(mat) {}
