@@ -4,6 +4,7 @@
 #include "Texture.hpp"
 #include "Material.hpp"
 #include "Camera.hpp"
+#include "Light.hpp"
 #include "asset/Asset.hpp"
 
 
@@ -28,6 +29,8 @@ private:
 	std::unordered_map<std::string, Asset> assets_;
 
 	std::unordered_map<std::string, Camera> cameras_;
+
+	std::vector<Light> lights_;
 
 	BVH tlas_;
 

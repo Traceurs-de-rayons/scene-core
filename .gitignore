@@ -45,3 +45,5 @@ core.*
 # Temporary files
 *.tmp
 *.temp
+
+a.out
