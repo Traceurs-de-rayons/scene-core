@@ -5,8 +5,9 @@
 #include "Material.hpp"
 #include "Camera.hpp"
 #include "Light.hpp"
+#include "Render.hpp"
+#include "Environment.hpp"
 #include "asset/Asset.hpp"
-
 
 #include <unordered_map>
 
@@ -31,6 +32,9 @@ private:
 	std::unordered_map<std::string, Camera> cameras_;
 
 	std::vector<Light> lights_;
+	Environment environment_;
+
+	std::optional<RenderSettings> render_settings_;
 
 	BVH tlas_;
 
