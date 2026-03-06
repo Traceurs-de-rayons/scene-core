@@ -5,6 +5,8 @@
 #include <variant>
 #include <memory>
 
+#include "core-utils.hpp"
+
 enum class TextureState
 {
 	Declared,

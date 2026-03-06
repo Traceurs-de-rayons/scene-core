@@ -5,6 +5,7 @@
 #include "Vertex.hpp"
 #include "Texture.hpp"
 #include "Material.hpp"
+#include "Camera.hpp"
 #include "asset/Asset.hpp"
 
 #include <vector>
@@ -25,13 +26,14 @@ private:
 	// tlas
 	// blas (selon la structure blas et tlas peuvent etre dans le meme buffer)
 	
-	std::unordered_map<std::string, Texture>  textures_;
-	std::unordered_map<std::string, Material>  materials_;
+	std::unordered_map<std::string, Texture> textures_;
+	std::unordered_map<std::string, Material> materials_;
+	std::unordered_map<std::string, Asset> assets_;
+
+	std::unordered_map<std::string, Camera> cameras_;
 
 	BVH tlas_;
 
-	std::unordered_map<std::string, Asset>  assets_;
-	
 	friend class sceneIO::tdr::SceneLoader;
 
 public:
