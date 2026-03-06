@@ -10,12 +10,12 @@ void Transform::setTranslation(const vec3& pos) {
 	position_ = {pos.x, pos.y, pos.z, 1};
 	matrixDirty_ = true;
 }
-	
+
 void Transform::setRotation(const quat& rot) {
 	rotation_ = rot.normalized();
 	matrixDirty_ = true;
 }
-	
+
 void Transform::setEulerAngles(float yaw, float pitch, float roll) {
 	rotation_ = quat::fromEuler(roll, pitch, yaw);
 	matrixDirty_ = true;

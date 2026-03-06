@@ -25,10 +25,9 @@ void SubMesh::printVerbose() const
 		std::cout << "      Vertex Buffer Offset: " << vertexBufferOffset_ << std::endl;
 		std::cout << "      Index Buffer Offset: " << indexBufferOffset_ << std::endl;
 	}
-	
+
 	std::cout << "      Indices (" << indices_.size() << "):" << std::endl;
 	for (size_t i = 0; i < indices_.size(); ++i) {
 		std::cout << "        [" << i << "]: " << indices_[i] << std::endl;
 	}
 }
-

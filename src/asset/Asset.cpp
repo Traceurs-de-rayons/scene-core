@@ -50,4 +50,3 @@
 // 	          << transform_.getTranslation().y << ", " 
 // 	          << transform_.getTranslation().z << ")" << std::endl;
 // }
-

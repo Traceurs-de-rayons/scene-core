@@ -2,5 +2,5 @@
 
 void Scene::loadAsset(Asset &obj)
 {
-	
+
 }

@@ -10,4 +10,7 @@ struct alignas(16) Vertex {
 	vec3 normal;
 	float pad2_ = 0;
 	vec2 uv;
+	uint32_t textureId = 0;
+	uint32_t modelMatrixId = 0;
+	float pad3_ = 0;
 };
