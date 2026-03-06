@@ -3,9 +3,9 @@
 #include <stdint.h>
 #include <string>
 #include <variant>
-#include <memory>
 
-#include "core-utils.hpp"
+#include "math/quat.hpp"
+#include "math/vec3.hpp"
 
 struct Camera
 {
@@ -72,5 +72,5 @@ struct Camera
 	};
 
 	std::variant<LookAt, cu::math::quat> rotation;
-	vec3 position;
+	cu::math::vec3 position;
 };

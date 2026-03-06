@@ -4,7 +4,7 @@
 #include <variant>
 #include <string>
 
-#include "core-utils.hpp"
+#include "math/vec3.hpp"
 
 template<typename T>
 struct MaterialParam
