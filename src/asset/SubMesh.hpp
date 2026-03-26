@@ -11,7 +11,7 @@ class Asset;
 namespace sceneIO::parser {
 	class ObjErrorCollector;
 	void parseObj(Asset& asset, std::istream& in, ObjErrorCollector& errors,
-	              uint64_t startLine, uint64_t startColumn);
+				  uint64_t startLine, uint64_t startColumn);
 }
 
 class SubMesh {
@@ -21,7 +21,7 @@ private:
 
 	std::string parsed_mat_name_;
 	uint32_t materialId_ = 0;
-	
+
 	// si on veut settup du culling coté rasterisation
 	// AABB localBounds;
 
@@ -36,8 +36,8 @@ private:
 	bool isGPUResident_ = false;
 
 	friend void sceneIO::parser::parseObj(Asset& asset, std::istream& in,
-	                                      sceneIO::parser::ObjErrorCollector& errors,
-	                                      uint64_t startLine, uint64_t startColumn);
+										  sceneIO::parser::ObjErrorCollector& errors,
+										  uint64_t startLine, uint64_t startColumn);
 
 public:
 	SubMesh(const std::string& mat = "default") : parsed_mat_name_(mat) {}
