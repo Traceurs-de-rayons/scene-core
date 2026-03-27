@@ -46,4 +46,10 @@ public:
 	Scene& operator=(Scene&&) = default;
 	~Scene() = default;
 
+	uint32_t getVertexAmount();
+	uint32_t getIndexAmount();
+	void loadVertices(Vertex *buffer);
+	void loadVerticesSSBO(VertexSSBO *buffer);
+	void loadIndices(uint32_t *buffer);
+
 };

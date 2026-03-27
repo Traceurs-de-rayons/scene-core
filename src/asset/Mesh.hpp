@@ -14,9 +14,14 @@ private:
 	std::vector<Vertex> vertices_;
 	std::vector<std::unique_ptr<SubMesh>> subMeshes_;
 
+	// GPU related variables
+	uint32_t vertexBufferOffset_ = UINT32_MAX;
+	uint32_t vertexCount_ = 0;
+
 	friend void sceneIO::parser::parseObj(Asset& asset, std::istream& in,
 	                                      sceneIO::parser::ObjErrorCollector& errors,
 	                                      uint64_t startLine, uint64_t startColumn);
+	friend class Scene;
 
 public:
 	std::string name;

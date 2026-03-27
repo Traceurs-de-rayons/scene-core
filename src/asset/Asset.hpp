@@ -85,6 +85,7 @@ private:
 	                                      sceneIO::parser::ObjErrorCollector& errors,
 	                                      uint64_t startLine, uint64_t startColumn);
 	friend class sceneIO::tdr::SceneLoader;
+	friend class Scene;
 	
 public:
 	Asset() {}
