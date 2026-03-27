@@ -19,8 +19,8 @@ private:
 	uint32_t vertexCount_ = 0;
 
 	friend void sceneIO::parser::parseObj(Asset& asset, std::istream& in,
-	                                      sceneIO::parser::ObjErrorCollector& errors,
-	                                      uint64_t startLine, uint64_t startColumn);
+										  sceneIO::parser::ObjErrorCollector& errors,
+										  uint64_t startLine, uint64_t startColumn);
 	friend class Scene;
 
 public:

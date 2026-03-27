@@ -20,7 +20,7 @@ enum AssetType {
 
 namespace sceneIO::tdr { class SceneLoader; }
 
-class Asset 
+class Asset
 {
 
 private:
@@ -82,11 +82,11 @@ private:
 	uint32_t blasIndex_; // index du blas sur le buffer gpu, uniquement si tous les submesh sont bien envoye
 
 	friend void sceneIO::parser::parseObj(Asset& asset, std::istream& in,
-	                                      sceneIO::parser::ObjErrorCollector& errors,
-	                                      uint64_t startLine, uint64_t startColumn);
+										  sceneIO::parser::ObjErrorCollector& errors,
+										  uint64_t startLine, uint64_t startColumn);
 	friend class sceneIO::tdr::SceneLoader;
 	friend class Scene;
-	
+
 public:
 	Asset() {}
 	Asset(Asset& other) = delete;
@@ -97,5 +97,5 @@ public:
 
 	// void print() const;
 	// void printVerbose() const;
-	
+
 };
