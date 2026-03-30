@@ -22,7 +22,6 @@ private:
 	std::vector<uint32_t> indices_;
 
 	std::string parsed_mat_name_;
-	uint32_t materialId_ = 0;
 
 	// si on veut settup du culling coté rasterisation
 	// AABB localBounds;
@@ -30,8 +29,8 @@ private:
 	// Informations relatives au GPU
 	// Si isGPUResident est a false, alors les infos ne sont pas sur le GPU
 	// Dans le cas contraire, vertexBufferOffset et indexBufferOffset et leurs count associé doivent etre set
-	uint32_t indexBufferOffset_ = UINT32_MAX;
-	uint32_t indexCount_ = 0;
+	uint32_t indicesBufferOffset_ = UINT32_MAX;
+	uint32_t indicesCount_ = 0;
 
 	friend void sceneIO::parser::parseObj(Asset& asset, std::istream& in,
 										  sceneIO::parser::ObjErrorCollector& errors,

@@ -13,6 +13,7 @@ uint32_t Scene::getVertexAmount()
 		for (const auto& mesh : std::get<Asset::ObjectData>(asset.content_).meshes)
 			res += mesh->vertices_.size();
 	}
+	return res;
 }
 
 uint32_t Scene::getIndexAmount()
@@ -29,6 +30,7 @@ uint32_t Scene::getIndexAmount()
 				res += submesh->indices_.size();
 		}
 	}
+	return res;
 }
 
 void Scene::loadVertices(Vertex *buffer)
@@ -69,9 +71,42 @@ void Scene::loadIndices(uint32_t *buffer)
 			{
 				const auto& indices = submesh->indices_;
 				memcpy(buffer + pos, indices.data(), indices.size() * sizeof(uint32_t));
-				submesh->indexCount_ = submesh->indices_.size();
-				submesh->indexBufferOffset_ = pos;
+				submesh->indicesCount_ = submesh->indices_.size();
+				submesh->indicesBufferOffset_ = pos;
 				pos += submesh->indices_.size();
+			}
+		}
+	}
+}
+
+void Scene::forEachSubMesh(std::function<void(const DrawCallView&)> callback) const
+{
+	for (const auto& [key, asset] : assets_)
+	{
+		if (!std::holds_alternative<Asset::ObjectData>(asset.content_)) continue;
+
+		const auto& objectData = std::get<Asset::ObjectData>(asset.content_);
+		
+		for (const auto& mesh : objectData.meshes)
+		{
+			for (const auto& submesh : mesh->subMeshes_)
+			{
+				const auto matIt = materials_.find(submesh->parsed_mat_name_);
+				const Material *mat = nullptr;
+				if (matIt == materials_.end())
+					mat = &default_material_;
+				else
+					mat = &(matIt->second);
+
+				DrawCallView view {
+					.verticesIndex = mesh->vertexBufferOffset_,
+					.verticesCount = mesh->vertexCount_,
+					.indicesIndex = submesh->indicesBufferOffset_,
+					.indecesCount = submesh->indicesCount_,
+					.material = *mat,
+					.transform = asset.transform_,
+				};
+				callback(view);
 			}
 		}
 	}

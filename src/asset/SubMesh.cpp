@@ -10,7 +10,7 @@
 // 	std::cout << "      GPU Resident: " << (isGPUResident_ ? "Yes" : "No") << std::endl;
 // 	if (isGPUResident_) {
 // 		std::cout << "      Vertex Buffer Offset: " << vertexBufferOffset_ << std::endl;
-// 		std::cout << "      Index Buffer Offset: " << indexBufferOffset_ << std::endl;
+// 		std::cout << "      Index Buffer Offset: " << indicesBufferOffset_ << std::endl;
 // 	}
 // }
 
@@ -23,7 +23,7 @@
 // 	std::cout << "      GPU Resident: " << (isGPUResident_ ? "Yes" : "No") << std::endl;
 // 	if (isGPUResident_) {
 // 		std::cout << "      Vertex Buffer Offset: " << vertexBufferOffset_ << std::endl;
-// 		std::cout << "      Index Buffer Offset: " << indexBufferOffset_ << std::endl;
+// 		std::cout << "      Index Buffer Offset: " << indicesBufferOffset_ << std::endl;
 // 	}
 
 // 	std::cout << "      Indices (" << indices_.size() << "):" << std::endl;

@@ -10,8 +10,19 @@
 #include "asset/Asset.hpp"
 
 #include <unordered_map>
+#include <functional>
 
 using namespace cu::math;
+
+struct DrawCallView
+{
+	uint32_t         verticesIndex;
+	uint32_t         verticesCount;
+	uint32_t         indicesIndex;
+	uint32_t         indecesCount;
+	const Material&  material;
+	const Transform& transform;
+};
 
 class Scene
 {
@@ -38,6 +49,9 @@ private:
 
 	BVH tlas_;
 
+
+	Material default_material_ = {};
+
 	friend class sceneIO::tdr::SceneLoader;
 
 public:
@@ -51,5 +65,7 @@ public:
 	void loadVertices(Vertex *buffer);
 	void loadVerticesSSBO(VertexSSBO *buffer);
 	void loadIndices(uint32_t *buffer);
+
+	void forEachSubMesh(std::function<void(const DrawCallView&)> callback) const;
 
 };
