@@ -86,7 +86,7 @@ void Scene::forEachSubMesh(std::function<void(const DrawCallView&)> callback) co
 		if (!std::holds_alternative<Asset::ObjectData>(asset.content_)) continue;
 
 		const auto& objectData = std::get<Asset::ObjectData>(asset.content_);
-		
+
 		for (const auto& mesh : objectData.meshes)
 		{
 			for (const auto& submesh : mesh->subMeshes_)
@@ -109,5 +109,32 @@ void Scene::forEachSubMesh(std::function<void(const DrawCallView&)> callback) co
 				callback(view);
 			}
 		}
+	}
+}
+
+void Scene::loadHierarchy()
+{
+	scene_hierarchy_.clear();
+
+	for (auto& [key, asset] : assets_)
+	{
+		AssetType type;
+		if (std::holds_alternative<Asset::ObjectData>(asset.content_))
+			type = AssetObject;
+		else if (std::holds_alternative<Asset::PrimitiveData>(asset.content_))
+			type = AssetPrimitive;
+		else if (std::holds_alternative<Asset::InstanceData>(asset.content_))
+			type = AssetInstance;
+		else if (std::holds_alternative<Asset::LightData>(asset.content_))
+			type = AssetType::Light;
+		else
+			type = AssetType::Sun;
+
+		scene_hierarchy_.push_back(SceneObject{
+			.name = key,
+			.data = &asset,
+			.type = type,
+			.parent_index_ = 0,
+		});
 	}
 }

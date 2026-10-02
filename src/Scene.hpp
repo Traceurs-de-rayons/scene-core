@@ -4,13 +4,13 @@
 #include "Texture.hpp"
 #include "Material.hpp"
 #include "Camera.hpp"
-#include "Light.hpp"
 #include "Render.hpp"
 #include "Environment.hpp"
 #include "asset/Asset.hpp"
 
 #include <unordered_map>
 #include <functional>
+#include <vector>
 
 using namespace cu::math;
 
@@ -24,25 +24,25 @@ struct DrawCallView
 	const Transform& transform;
 };
 
+struct SceneObject
+{
+	std::string 	name;
+	void*       	data;
+	AssetType		type;
+	int				parent_index_;
+};
+
 class Scene
 {
 
 private:
-	// GPU buffers :
-	// vertex
-	// indexes
-	// material
-	// primitives
-	// tlas
-	// blas (selon la structure blas et tlas peuvent etre dans le meme buffer)
+	std::vector<SceneObject> scene_hierarchy_;
 
 	std::unordered_map<std::string, Texture> textures_;
 	std::unordered_map<std::string, Material> materials_;
 	std::unordered_map<std::string, Asset> assets_;
-
 	std::unordered_map<std::string, Camera> cameras_;
 
-	std::vector<Light> lights_;
 	Environment environment_;
 
 	std::optional<RenderSettings> render_settings_;
@@ -65,7 +65,25 @@ public:
 	void loadVertices(Vertex *buffer);
 	void loadVerticesSSBO(VertexSSBO *buffer);
 	void loadIndices(uint32_t *buffer);
+	void loadHierarchy();
 
 	void forEachSubMesh(std::function<void(const DrawCallView&)> callback) const;
+
+
+	const std::unordered_map<std::string, Camera>& getCameras() const { return cameras_; }
+	const std::unordered_map<std::string, Texture>& getTextures() const { return textures_; }
+	const std::unordered_map<std::string, Material>& getMaterials() const { return materials_; }
+	const std::unordered_map<std::string, Asset>& getAssets() const { return assets_; }
+	std::unordered_map<std::string, Asset>& getAssets() { return assets_; }
+	const std::vector<SceneObject>& getSceneHierarchy() const { return scene_hierarchy_; }
+	const Camera* getCamera(const std::string& name) const
+	{
+		auto it = cameras_.find(name);
+		return it != cameras_.end() ? &it->second : nullptr;
+	}
+	const Camera* getDefaultCamera() const
+	{
+		return cameras_.empty() ? nullptr : &cameras_.begin()->second;
+	}
 
 };
