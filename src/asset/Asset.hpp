@@ -84,10 +84,18 @@ private:
 			vec3 direction;
 		};
 
+		struct Spot
+		{
+			vec3 position;
+			vec3 direction = vec3(0.0f, -1.0f, 0.0f); // direction the light travels
+			float angle = 45.0f; // full cone angle in degrees
+			float blend = 0.15f; // fraction of the cone faded out at its edge (0 = hard edge)
+		};
+
 		std::string label;
 		vec3 color = vec3(1.0f);
 		float intensity = 1.0f;
-		std::variant<Point, Directional> projection;
+		std::variant<Point, Directional, Spot> projection;
 	};
 
 	// Infinitely distant directional light (parallel rays, no position).
