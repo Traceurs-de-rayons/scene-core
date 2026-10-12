@@ -114,6 +114,7 @@ private:
 
 	std::string material_;
 	Transform transform_;
+	bool visible_ = true;
 
 	BVH blas_;
 	uint32_t blasIndex_;
@@ -139,6 +140,10 @@ public:
 
 	Transform& getTransform() { return transform_; }
 	const Transform& getTransform() const { return transform_; }
+
+	// A hidden asset stays in the scene but is not drawn (a hidden light is switched off).
+	bool isVisible() const { return visible_; }
+	void setVisible(bool visible) { visible_ = visible; }
 
 	AssetType getType() const
 	{

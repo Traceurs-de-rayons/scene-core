@@ -22,6 +22,15 @@ struct DrawCallView
 	uint32_t         indecesCount;
 	const Material&  material;
 	const Transform& transform;
+	bool             visible = true;
+};
+
+// Closest intersection found by Scene::raycast().
+struct RayHit
+{
+	std::string name;     // asset that was hit
+	float       distance; // world-space distance from the ray origin
+	vec3        position; // world-space hit point
 };
 
 struct SceneObject
@@ -52,6 +61,9 @@ private:
 
 	Material default_material_ = {};
 
+	// Bumped whenever an asset is added or removed: GPU buffers built from an older version are stale.
+	uint64_t structure_version_ = 0;
+
 	friend class sceneIO::tdr::SceneLoader;
 
 public:
@@ -69,6 +81,27 @@ public:
 
 	void forEachSubMesh(std::function<void(const DrawCallView&)> callback) const;
 
+	// Adds `asset` under `name`. Returns nullptr if the name is empty or already taken.
+	Asset* addAsset(const std::string& name, Asset&& asset);
+	// Adds an object made of one mesh: `indices` are triangles into `vertices`.
+	Asset* addMesh(const std::string& name, std::vector<Vertex> vertices, std::vector<uint32_t> indices,
+				   const std::string& material = "default");
+	bool removeAsset(const std::string& name);
+
+	Asset* getAsset(const std::string& name);
+	const Asset* getAsset(const std::string& name) const;
+	bool hasAsset(const std::string& name) const { return assets_.find(name) != assets_.end(); }
+
+	// Return false if no asset has that name.
+	bool setAssetVisible(const std::string& name, bool visible);
+	bool hideAsset(const std::string& name) { return setAssetVisible(name, false); }
+	bool showAsset(const std::string& name) { return setAssetVisible(name, true); }
+	bool isAssetVisible(const std::string& name) const;
+
+	uint64_t getStructureVersion() const { return structure_version_; }
+
+	// Closest visible object hit by the ray, tested triangle by triangle in world space.
+	std::optional<RayHit> raycast(const vec3& origin, const vec3& direction) const;
 
 	const std::unordered_map<std::string, Camera>& getCameras() const { return cameras_; }
 	const std::unordered_map<std::string, Texture>& getTextures() const { return textures_; }
