@@ -7,6 +7,7 @@
 #include "Render.hpp"
 #include "Environment.hpp"
 #include "asset/Asset.hpp"
+#include "animation/Animation.hpp"
 
 #include <unordered_map>
 #include <functional>
@@ -23,6 +24,8 @@ struct DrawCallView
 	const Material&  material;
 	const Transform& transform;
 	bool             visible = true;
+	const std::vector<mat4>* bones = nullptr; // pose of a skinned asset, shared by its sub meshes
+	bool             viewModel = false;
 };
 
 // Closest intersection found by Scene::raycast().
@@ -76,6 +79,8 @@ public:
 	uint32_t getIndexAmount();
 	void loadVertices(Vertex *buffer);
 	void loadVerticesSSBO(VertexSSBO *buffer);
+	// One entry per vertex, in the order of loadVertices(); zeros for what is not skinned.
+	void loadVertexSkins(VertexSkin *buffer);
 	void loadIndices(uint32_t *buffer);
 	void loadHierarchy();
 
@@ -86,7 +91,34 @@ public:
 	// Adds an object made of one mesh: `indices` are triangles into `vertices`.
 	Asset* addMesh(const std::string& name, std::vector<Vertex> vertices, std::vector<uint32_t> indices,
 				   const std::string& material = "default");
+	// Adds an instance of `model`, in its rest pose: every instance has its own pose
+	// (Asset::setBoneMatrices()), the materials and textures of the model are shared.
+	Asset* addModel(const std::string& name, const Model& model);
 	bool removeAsset(const std::string& name);
+
+	// Adds `texture` under `name`. Returns nullptr if the name is empty or already taken.
+	Texture* addTexture(const std::string& name, Texture&& texture);
+
+	// Adds `material` under material.name. Returns nullptr if the name is empty or already taken.
+	Material* addMaterial(const Material& material);
+	// Shortcut: a material that is just a flat color.
+	// `emission`: 0 = lit like any surface, 1 = glows with its own color (stylized render graphs only).
+	Material* addColorMaterial(const std::string& name, const vec3& color, float emission = 0.0f);
+	Material* getMaterial(const std::string& name);
+
+	// Lights are assets: hide, show or remove them like any other. Directions are the way the light travels.
+	Asset* addSun(const std::string& name, const vec3& direction, const vec3& color = vec3(1.0f),
+				  float intensity = 1.0f, float angle = 0.53f);
+	Asset* addDirectionalLight(const std::string& name, const vec3& direction, const vec3& color = vec3(1.0f),
+							   float intensity = 1.0f);
+	Asset* addPointLight(const std::string& name, const vec3& position, const vec3& color = vec3(1.0f),
+						 float intensity = 1.0f);
+	Asset* addSpotLight(const std::string& name, const vec3& position, const vec3& direction,
+						const vec3& color = vec3(1.0f), float intensity = 1.0f, float angle = 45.0f, float blend = 0.15f);
+
+	// Color shown where nothing is drawn (ignored when the environment is a skybox).
+	void setBackgroundColor(const vec3& color) { environment_.env = color; }
+	const Environment& getEnvironment() const { return environment_; }
 
 	Asset* getAsset(const std::string& name);
 	const Asset* getAsset(const std::string& name) const;
@@ -105,6 +137,7 @@ public:
 
 	const std::unordered_map<std::string, Camera>& getCameras() const { return cameras_; }
 	const std::unordered_map<std::string, Texture>& getTextures() const { return textures_; }
+	std::unordered_map<std::string, Texture>& getTextures() { return textures_; }
 	const std::unordered_map<std::string, Material>& getMaterials() const { return materials_; }
 	const std::unordered_map<std::string, Asset>& getAssets() const { return assets_; }
 	std::unordered_map<std::string, Asset>& getAssets() { return assets_; }

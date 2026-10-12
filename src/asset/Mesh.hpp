@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SubMesh.hpp"
+#include "animation/Model.hpp"
 
 #include <stdint.h>
 #include <vector>
@@ -12,6 +13,7 @@ class Mesh {
 
 private:
 	std::vector<Vertex> vertices_;
+	std::vector<VertexSkin> skin_; // empty, or one per vertex (see Scene::addModel())
 	std::vector<std::unique_ptr<SubMesh>> subMeshes_;
 
 	// GPU related variables

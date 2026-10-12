@@ -90,6 +90,26 @@ void Scene::loadVertices(Vertex *buffer)
 	}
 }
 
+void Scene::loadVertexSkins(VertexSkin *buffer)
+{
+	uint32_t pos = 0;
+
+	for (const auto& [key, asset] : assets_)
+	{
+		if (!std::holds_alternative<Asset::ObjectData>(asset.content_)) continue;
+
+		for (const auto& mesh : std::get<Asset::ObjectData>(asset.content_).meshes)
+		{
+			const size_t count = mesh->vertices_.size();
+			if (mesh->skin_.size() == count)
+				memcpy(buffer + pos, mesh->skin_.data(), count * sizeof(VertexSkin));
+			else
+				memset(buffer + pos, 0, count * sizeof(VertexSkin));
+			pos += count;
+		}
+	}
+}
+
 void Scene::loadVerticesSSBO(VertexSSBO *buffer)
 {
 
@@ -129,7 +149,11 @@ void Scene::forEachSubMesh(std::function<void(const DrawCallView&)> callback) co
 		{
 			for (const auto& submesh : mesh->subMeshes_)
 			{
-				const auto matIt = materials_.find(submesh->parsed_mat_name_);
+				auto matIt = materials_.end();
+				if (const auto replaced = asset.materialOverrides_.find(submesh->parsed_mat_name_); replaced != asset.materialOverrides_.end())
+					matIt = materials_.find(replaced->second);
+				if (matIt == materials_.end())
+					matIt = materials_.find(submesh->parsed_mat_name_);
 				const Material *mat = nullptr;
 				if (matIt == materials_.end())
 					mat = &default_material_;
@@ -144,6 +168,8 @@ void Scene::forEachSubMesh(std::function<void(const DrawCallView&)> callback) co
 					.material = *mat,
 					.transform = asset.transform_,
 					.visible = asset.visible_,
+					.bones = asset.bones_.empty() ? nullptr : &asset.bones_,
+					.viewModel = asset.viewModel_,
 				};
 				callback(view);
 			}
@@ -189,6 +215,147 @@ Asset* Scene::addMesh(const std::string& name, std::vector<Vertex> vertices, std
 	Asset asset;
 	asset.content_ = std::move(object);
 	asset.material_ = material;
+	return addAsset(name, std::move(asset));
+}
+
+Asset* Scene::addModel(const std::string& name, const Model& model)
+{
+	if (model.meshes.empty() || model.bones.size() > 256)
+		return nullptr;
+
+	// Materials and textures are shared by every instance of the model.
+	const std::string prefix = model.name + ":";
+	for (const ModelTexture& source : model.textures)
+	{
+		Texture texture;
+		texture.name = prefix + source.name;
+		if (source.encoded.empty())
+			texture.data = Texture::FromFile{ .path = source.path };
+		else
+			texture.data = Texture::Encoded{ source.encoded };
+		addTexture(texture.name, std::move(texture));
+	}
+	for (Material material : model.materials)
+	{
+		material.name = prefix + material.name;
+		if (material.albedo && std::holds_alternative<std::string>(material.albedo->value))
+			material.albedo->value = prefix + std::get<std::string>(material.albedo->value);
+		addMaterial(material);
+	}
+
+	Asset::ObjectData object;
+	for (const ModelMesh& source : model.meshes)
+	{
+		if (source.vertices.empty() || source.indices.empty() || source.skin.size() != source.vertices.size())
+			continue;
+
+		auto submesh = std::make_unique<SubMesh>(prefix + source.material);
+		submesh->indices_ = source.indices;
+
+		auto mesh = std::make_unique<Mesh>(source.name);
+		mesh->vertices_ = source.vertices;
+		mesh->skin_ = source.skin;
+		mesh->subMeshes_.push_back(std::move(submesh));
+		object.meshes.push_back(std::move(mesh));
+	}
+	if (object.meshes.empty())
+		return nullptr;
+
+	Asset asset;
+	asset.content_ = std::move(object);
+	Pose pose;
+	restPose(model, pose);
+	computeBoneMatrices(model, pose, asset.bones_);
+	return addAsset(name, std::move(asset));
+}
+
+Texture* Scene::addTexture(const std::string& name, Texture&& texture)
+{
+	if (name.empty() || textures_.find(name) != textures_.end())
+		return nullptr;
+
+	// Texture itself cannot be moved: fill a new one in place.
+	Texture& added = textures_[name];
+	added.name = texture.name;
+	added.label = texture.label;
+	added.data = std::move(texture.data);
+	++structure_version_;
+	return &added;
+}
+
+Material* Scene::addMaterial(const Material& material)
+{
+	if (material.name.empty() || materials_.find(material.name) != materials_.end())
+		return nullptr;
+
+	Material& added = materials_[material.name] = material;
+	++structure_version_;
+	return &added;
+}
+
+Material* Scene::addColorMaterial(const std::string& name, const vec3& color, float emission)
+{
+	Material material;
+	material.name = name;
+	material.albedo = MaterialParam<vec3>{ color };
+	if (emission > 0.0f)
+		material.emission_strength = MaterialParam<float>{ emission };
+	return addMaterial(material);
+}
+
+Material* Scene::getMaterial(const std::string& name)
+{
+	auto it = materials_.find(name);
+	return it != materials_.end() ? &it->second : nullptr;
+}
+
+Asset* Scene::addSun(const std::string& name, const vec3& direction, const vec3& color, float intensity, float angle)
+{
+	Asset::SunData sun;
+	sun.direction = direction;
+	sun.color = color;
+	sun.intensity = intensity;
+	sun.angle = angle;
+
+	Asset asset;
+	asset.content_ = sun;
+	return addAsset(name, std::move(asset));
+}
+
+Asset* Scene::addDirectionalLight(const std::string& name, const vec3& direction, const vec3& color, float intensity)
+{
+	Asset::LightData light;
+	light.color = color;
+	light.intensity = intensity;
+	light.projection = Asset::LightData::Directional{ direction };
+
+	Asset asset;
+	asset.content_ = light;
+	return addAsset(name, std::move(asset));
+}
+
+Asset* Scene::addPointLight(const std::string& name, const vec3& position, const vec3& color, float intensity)
+{
+	Asset::LightData light;
+	light.color = color;
+	light.intensity = intensity;
+	light.projection = Asset::LightData::Point{ position };
+
+	Asset asset;
+	asset.content_ = light;
+	return addAsset(name, std::move(asset));
+}
+
+Asset* Scene::addSpotLight(const std::string& name, const vec3& position, const vec3& direction, const vec3& color,
+						   float intensity, float angle, float blend)
+{
+	Asset::LightData light;
+	light.color = color;
+	light.intensity = intensity;
+	light.projection = Asset::LightData::Spot{ position, direction, angle, blend };
+
+	Asset asset;
+	asset.content_ = light;
 	return addAsset(name, std::move(asset));
 }
 

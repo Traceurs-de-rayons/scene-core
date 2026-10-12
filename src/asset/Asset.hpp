@@ -115,6 +115,9 @@ private:
 	std::string material_;
 	Transform transform_;
 	bool visible_ = true;
+	std::unordered_map<std::string, std::string> materialOverrides_; // material of the meshes -> the one drawn instead
+	std::vector<mat4> bones_; // one per Model::bones when the asset comes from a model
+	bool viewModel_ = false;
 
 	BVH blas_;
 	uint32_t blasIndex_;
@@ -138,12 +141,35 @@ public:
 	const std::string& getMaterial() const { return material_; }
 	void setMaterial(const std::string& material) { material_ = material; }
 
+	// Draws the sub meshes using `original` with `replacement` instead (a skin on one instance
+	// of a model). Both are material names of the scene; an empty or unknown replacement gives
+	// back the original. Changing it is cheap: no GPU buffer is rebuilt.
+	void setMaterialOverride(const std::string& original, const std::string& replacement)
+	{
+		if (replacement.empty() || replacement == original)
+			materialOverrides_.erase(original);
+		else
+			materialOverrides_[original] = replacement;
+	}
+
 	Transform& getTransform() { return transform_; }
 	const Transform& getTransform() const { return transform_; }
 
 	// A hidden asset stays in the scene but is not drawn (a hidden light is switched off).
 	bool isVisible() const { return visible_; }
 	void setVisible(bool visible) { visible_ = visible; }
+
+	// Pose of an asset made from a Model: one matrix per Model::bones, as computed by
+	// computeBoneMatrices(). Ignored unless the count matches.
+	void setBoneMatrices(const std::vector<mat4>& matrices) { if (matrices.size() == bones_.size()) bones_ = matrices; }
+	const std::vector<mat4>& getBoneMatrices() const { return bones_; }
+
+	// A view model is what the player holds in first person (arms, weapon): it is drawn over
+	// the rest of the scene so it never sinks into a wall, with the field of view given by
+	// RasterCore::Camera::viewModelFovDegrees, and it casts no shadow. Its transform is relative
+	// to the camera (+X right, +Y up, -Z forward), so it follows the view exactly.
+	bool isViewModel() const { return viewModel_; }
+	void setViewModel(bool viewModel) { viewModel_ = viewModel; }
 
 	AssetType getType() const
 	{

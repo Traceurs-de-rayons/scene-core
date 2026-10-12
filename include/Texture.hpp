@@ -4,6 +4,7 @@
 #include <string>
 #include <variant>
 #include <memory>
+#include <vector>
 
 #include "core-utils.hpp"
 
@@ -43,7 +44,13 @@ struct Texture
 		float scale = 1.0f;
 	};
 
-	std::variant<FromFile, CheckerLocal, CheckerGlobal> data;
+	// An image file kept in memory (PNG, JPEG...), as found inside a .glb.
+	struct Encoded
+	{
+		std::vector<uint8_t> bytes;
+	};
+
+	std::variant<FromFile, CheckerLocal, CheckerGlobal, Encoded> data;
 
 	Texture() : data(FromFile{}) {}
 	~Texture() = default;
