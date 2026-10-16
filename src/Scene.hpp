@@ -9,7 +9,9 @@
 #include "asset/Asset.hpp"
 #include "animation/Animation.hpp"
 
+#include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <functional>
 #include <vector>
 
@@ -52,6 +54,8 @@ private:
 
 	std::unordered_map<std::string, Texture> textures_;
 	std::unordered_map<std::string, Material> materials_;
+	// Geometry of the models with an instance in the scene, by model name and mesh.
+	std::unordered_map<std::string, std::vector<std::weak_ptr<const ModelMesh>>> modelGeometry_;
 	std::unordered_map<std::string, Asset> assets_;
 	std::unordered_map<std::string, Camera> cameras_;
 
@@ -92,7 +96,9 @@ public:
 	Asset* addMesh(const std::string& name, std::vector<Vertex> vertices, std::vector<uint32_t> indices,
 				   const std::string& material = "default");
 	// Adds an instance of `model`, in its rest pose: every instance has its own pose
-	// (Asset::setBoneMatrices()), the materials and textures of the model are shared.
+	// (Asset::setBoneMatrices()); the geometry, materials and textures are those of the first
+	// instance added and shared by the others, so a model is found by its name and must not
+	// change between two instances.
 	Asset* addModel(const std::string& name, const Model& model);
 	bool removeAsset(const std::string& name);
 

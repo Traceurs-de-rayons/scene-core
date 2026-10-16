@@ -4,7 +4,7 @@
 void Mesh::print() const
 {
 	std::cout << "  Mesh: " << name << std::endl;
-	std::cout << "    Vertex Count: " << vertices_.size() << std::endl;
+	std::cout << "    Vertex Count: " << vertices().size() << std::endl;
 	std::cout << "    SubMesh Count: " << subMeshes_.size() << std::endl;
 
 	for (size_t i = 0; i < subMeshes_.size(); ++i) {

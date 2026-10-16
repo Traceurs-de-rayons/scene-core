@@ -40,16 +40,22 @@ namespace {
 
 }
 
+// The instances of a model share their geometry (Mesh::shared_): it goes once in the buffers,
+// where the first instance met puts it, and the others point to the same place. Every function
+// below walks the assets in the same order, so they agree on that place.
+
 uint32_t Scene::getVertexAmount()
 {
 	uint32_t res = 0;
+	std::unordered_set<const ModelMesh*> placed;
 
 	for (const auto& [key, asset] : assets_)
 	{
 		if (!std::holds_alternative<Asset::ObjectData>(asset.content_)) continue;
 
 		for (const auto& mesh : std::get<Asset::ObjectData>(asset.content_).meshes)
-			res += mesh->vertices_.size();
+			if (!mesh->shared_ || placed.insert(mesh->shared_.get()).second)
+				res += mesh->vertices().size();
 	}
 	return res;
 }
@@ -57,6 +63,7 @@ uint32_t Scene::getVertexAmount()
 uint32_t Scene::getIndexAmount()
 {
 	uint32_t res = 0;
+	std::unordered_set<const ModelMesh*> placed;
 
 	for (const auto& [key, asset] : assets_)
 	{
@@ -64,6 +71,12 @@ uint32_t Scene::getIndexAmount()
 
 		for (const auto& mesh : std::get<Asset::ObjectData>(asset.content_).meshes)
 		{
+			if (mesh->shared_)
+			{
+				if (placed.insert(mesh->shared_.get()).second)
+					res += mesh->shared_->indices.size();
+				continue;
+			}
 			for (const auto& submesh : mesh->subMeshes_)
 				res += submesh->indices_.size();
 		}
@@ -74,6 +87,7 @@ uint32_t Scene::getIndexAmount()
 void Scene::loadVertices(Vertex *buffer)
 {
 	uint32_t pos = 0;
+	std::unordered_map<const ModelMesh*, uint32_t> placed;
 
 	for (const auto& [key, asset] : assets_)
 	{
@@ -81,11 +95,18 @@ void Scene::loadVertices(Vertex *buffer)
 
 		for (const auto& mesh : std::get<Asset::ObjectData>(asset.content_).meshes)
 		{
-			const auto& verts = mesh->vertices_;
+			const auto& verts = mesh->vertices();
+			mesh->vertexCount_ = verts.size();
+			if (mesh->shared_)
+			{
+				const auto [where, first] = placed.try_emplace(mesh->shared_.get(), pos);
+				mesh->vertexBufferOffset_ = where->second;
+				if (!first)
+					continue;
+			}
 			memcpy(buffer + pos, verts.data(), verts.size() * sizeof(Vertex));
-			mesh->vertexCount_ = mesh->vertices_.size();
 			mesh->vertexBufferOffset_ = pos;
-			pos += mesh->vertices_.size();
+			pos += verts.size();
 		}
 	}
 }
@@ -93,6 +114,7 @@ void Scene::loadVertices(Vertex *buffer)
 void Scene::loadVertexSkins(VertexSkin *buffer)
 {
 	uint32_t pos = 0;
+	std::unordered_set<const ModelMesh*> placed;
 
 	for (const auto& [key, asset] : assets_)
 	{
@@ -100,9 +122,11 @@ void Scene::loadVertexSkins(VertexSkin *buffer)
 
 		for (const auto& mesh : std::get<Asset::ObjectData>(asset.content_).meshes)
 		{
-			const size_t count = mesh->vertices_.size();
-			if (mesh->skin_.size() == count)
-				memcpy(buffer + pos, mesh->skin_.data(), count * sizeof(VertexSkin));
+			if (mesh->shared_ && !placed.insert(mesh->shared_.get()).second)
+				continue;
+			const size_t count = mesh->vertices().size();
+			if (mesh->skin().size() == count)
+				memcpy(buffer + pos, mesh->skin().data(), count * sizeof(VertexSkin));
 			else
 				memset(buffer + pos, 0, count * sizeof(VertexSkin));
 			pos += count;
@@ -118,6 +142,7 @@ void Scene::loadVerticesSSBO(VertexSSBO *buffer)
 void Scene::loadIndices(uint32_t *buffer)
 {
 	uint32_t pos = 0;
+	std::unordered_map<const ModelMesh*, uint32_t> placed;
 
 	for (const auto& [key, asset] : assets_)
 	{
@@ -127,11 +152,18 @@ void Scene::loadIndices(uint32_t *buffer)
 		{
 			for (const auto& submesh : mesh->subMeshes_)
 			{
-				const auto& indices = submesh->indices_;
+				const auto& indices = mesh->shared_ ? mesh->shared_->indices : submesh->indices_;
+				submesh->indicesCount_ = indices.size();
+				if (mesh->shared_)
+				{
+					const auto [where, first] = placed.try_emplace(mesh->shared_.get(), pos);
+					submesh->indicesBufferOffset_ = where->second;
+					if (!first)
+						continue;
+				}
 				memcpy(buffer + pos, indices.data(), indices.size() * sizeof(uint32_t));
-				submesh->indicesCount_ = submesh->indices_.size();
 				submesh->indicesBufferOffset_ = pos;
-				pos += submesh->indices_.size();
+				pos += indices.size();
 			}
 		}
 	}
@@ -243,18 +275,27 @@ Asset* Scene::addModel(const std::string& name, const Model& model)
 		addMaterial(material);
 	}
 
+	// So is the geometry: instances only differ by their pose. It is copied from the first
+	// instance added, and kept for as long as one of them is in the scene.
+	std::vector<std::weak_ptr<const ModelMesh>>& geometry = modelGeometry_[model.name];
+	geometry.resize(model.meshes.size());
+
 	Asset::ObjectData object;
-	for (const ModelMesh& source : model.meshes)
+	for (size_t i = 0; i < model.meshes.size(); ++i)
 	{
+		const ModelMesh& source = model.meshes[i];
 		if (source.vertices.empty() || source.indices.empty() || source.skin.size() != source.vertices.size())
 			continue;
 
 		auto submesh = std::make_unique<SubMesh>(prefix + source.material);
-		submesh->indices_ = source.indices;
 
 		auto mesh = std::make_unique<Mesh>(source.name);
-		mesh->vertices_ = source.vertices;
-		mesh->skin_ = source.skin;
+		mesh->shared_ = geometry[i].lock();
+		if (!mesh->shared_ || mesh->shared_->vertices.size() != source.vertices.size() || mesh->shared_->indices.size() != source.indices.size())
+		{
+			mesh->shared_ = std::make_shared<const ModelMesh>(source);
+			geometry[i] = mesh->shared_;
+		}
 		mesh->subMeshes_.push_back(std::move(submesh));
 		object.meshes.push_back(std::move(mesh));
 	}
@@ -412,13 +453,13 @@ std::optional<RayHit> Scene::raycast(const vec3& origin, const vec3& direction) 
 		for (const auto& mesh : std::get<Asset::ObjectData>(asset.content_).meshes)
 		{
 			world.clear();
-			world.reserve(mesh->vertices_.size());
-			for (const Vertex& vertex : mesh->vertices_)
+			world.reserve(mesh->vertices().size());
+			for (const Vertex& vertex : mesh->vertices())
 				world.push_back(transformPoint(matrix, vertex.pos));
 
 			for (const auto& submesh : mesh->subMeshes_)
 			{
-				const auto& indices = submesh->indices_;
+				const auto& indices = mesh->shared_ ? mesh->shared_->indices : submesh->indices_;
 				for (size_t i = 0; i + 2 < indices.size(); i += 3)
 				{
 					float t = 0.0f;

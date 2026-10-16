@@ -14,6 +14,9 @@ class Mesh {
 private:
 	std::vector<Vertex> vertices_;
 	std::vector<VertexSkin> skin_; // empty, or one per vertex (see Scene::addModel())
+	// Instance of a model: its geometry, held once for all the instances of that model. The
+	// vectors above and the indices of the sub mesh are then empty.
+	std::shared_ptr<const ModelMesh> shared_;
 	std::vector<std::unique_ptr<SubMesh>> subMeshes_;
 
 	// GPU related variables
@@ -34,6 +37,9 @@ public:
 	Mesh(Mesh&& other) = default;
 
 	~Mesh() {}
+
+	const std::vector<Vertex>& vertices() const { return shared_ ? shared_->vertices : vertices_; }
+	const std::vector<VertexSkin>& skin() const { return shared_ ? shared_->skin : skin_; }
 
 	void print() const;
 	void printVerbose() const;
