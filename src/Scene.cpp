@@ -169,6 +169,48 @@ void Scene::loadIndices(uint32_t *buffer)
 	}
 }
 
+void Scene::placeGeometry(const std::function<GeometryPlacement(const GeometryView&)>& place)
+{
+	std::unordered_map<const ModelMesh*, GeometryPlacement> placed;
+
+	for (auto& [key, asset] : assets_)
+	{
+		if (!std::holds_alternative<Asset::ObjectData>(asset.content_)) continue;
+
+		for (auto& mesh : std::get<Asset::ObjectData>(asset.content_).meshes)
+		{
+			GeometryPlacement where;
+			if (mesh->shared_)
+			{
+				auto found = placed.find(mesh->shared_.get());
+				if (found == placed.end())
+				{
+					GeometryView view{mesh->shared_, 0, mesh->shared_->vertices, mesh->shared_->skin, {}};
+					view.indices.assign(mesh->subMeshes_.size(), &mesh->shared_->indices);
+					found = placed.emplace(mesh->shared_.get(), place(view)).first;
+				}
+				where = found->second;
+			}
+			else
+			{
+				GeometryView view{nullptr, mesh->id_, mesh->vertices_, mesh->skin_, {}};
+				for (const auto& submesh : mesh->subMeshes_)
+					view.indices.push_back(&submesh->indices_);
+				where = place(view);
+			}
+
+			mesh->vertexBufferOffset_ = where.firstVertex;
+			mesh->vertexCount_ = static_cast<uint32_t>(mesh->vertices().size());
+			for (size_t i = 0; i < mesh->subMeshes_.size(); ++i)
+			{
+				SubMesh& submesh = *mesh->subMeshes_[i];
+				submesh.indicesBufferOffset_ = i < where.firstIndex.size() ? where.firstIndex[i] : 0;
+				submesh.indicesCount_ = static_cast<uint32_t>((mesh->shared_ ? mesh->shared_->indices : submesh.indices_).size());
+			}
+		}
+	}
+}
+
 void Scene::forEachSubMesh(std::function<void(const DrawCallView&)> callback) const
 {
 	for (const auto& [key, asset] : assets_)

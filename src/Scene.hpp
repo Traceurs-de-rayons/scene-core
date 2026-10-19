@@ -30,6 +30,27 @@ struct DrawCallView
 	bool             viewModel = false;
 };
 
+// One piece of geometry of the scene, as Scene::placeGeometry() hands it out: what the
+// instances of a model share (`shared`, kept alive by whoever holds this pointer, so no other
+// geometry takes its address meanwhile), or a mesh of its own (`mesh`, an id no other mesh gets).
+struct GeometryView
+{
+	std::shared_ptr<const ModelMesh> shared;
+	uint64_t mesh = 0;
+	const std::vector<Vertex>& vertices;
+	const std::vector<VertexSkin>& skin; // empty, or one per vertex
+	// One list per sub mesh, triangles into `vertices`; sub meshes may share one.
+	std::vector<const std::vector<uint32_t>*> indices;
+};
+
+// Where a piece of geometry is in the GPU buffers: its first vertex, and the first index of
+// each of its sub meshes.
+struct GeometryPlacement
+{
+	uint32_t firstVertex = 0;
+	std::vector<uint32_t> firstIndex;
+};
+
 // Closest intersection found by Scene::raycast().
 struct RayHit
 {
@@ -86,6 +107,10 @@ public:
 	// One entry per vertex, in the order of loadVertices(); zeros for what is not skinned.
 	void loadVertexSkins(VertexSkin *buffer);
 	void loadIndices(uint32_t *buffer);
+	// For whoever keeps GPU buffers up to date as assets come and go, instead of the four above:
+	// calls `place` once for each piece of geometry (once for all the instances sharing one) and
+	// records where it says it is, which forEachSubMesh() then reports.
+	void placeGeometry(const std::function<GeometryPlacement(const GeometryView&)>& place);
 	void loadHierarchy();
 
 	void forEachSubMesh(std::function<void(const DrawCallView&)> callback) const;

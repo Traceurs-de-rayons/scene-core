@@ -3,6 +3,7 @@
 #include "SubMesh.hpp"
 #include "animation/Model.hpp"
 
+#include <atomic>
 #include <stdint.h>
 #include <vector>
 #include <memory>
@@ -22,6 +23,15 @@ private:
 	// GPU related variables
 	uint32_t vertexBufferOffset_ = UINT32_MAX;
 	uint32_t vertexCount_ = 0;
+	// Who this mesh is for whoever keeps its geometry on the GPU (Scene::placeGeometry()):
+	// never given to another mesh, kept when the mesh is moved.
+	uint64_t id_ = nextId();
+
+	static uint64_t nextId()
+	{
+		static std::atomic<uint64_t> next{1};
+		return next++;
+	}
 
 	friend void sceneIO::parser::parseObj(Asset& asset, std::istream& in,
 										  sceneIO::parser::ObjErrorCollector& errors,
